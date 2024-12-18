@@ -16,11 +16,35 @@ pub struct MyTraitOpts {
     lorem: Lorem,
 }
 
+#[derive(Default, FromMeta)]
+#[darling(default)]
+pub struct OpsSelf {
+    ops: OpsBitflag,
+    suffix:
+}
+
+#[derive(Default, FromMeta)]
+#[darling(default)]
+pub struct OpsWith {
+    ops: OpsBitflag,
+    targets: &[Ident],
+    into:
+    from:
+}
+
 #[derive(FromDeriveInput)]
-#[darling(attributes(auto_ops), forward_attrs(OPSow, doc, cfg))]
+#[darling(
+    attributes(auto_ops),
+    supports(struct_any),
+    forward_attrs(OPSow, doc, cfg)
+)]
 pub struct AutoOps {
     ident: syn::Ident,
     attrs: Vec<syn::Attribute>,
+    ops_self: OpsSelf,
+    ops_with: OpsWith,
+    partial_ord:
+    eq:
 }
 
 pub type OpsBitflag = u32;
@@ -35,6 +59,8 @@ pub const DIV_ASSIGN:   OpsBitflag = 1 << 7;
 pub const REM:          OpsBitflag = 1 << 8;
 pub const REM_ASSIGN:   OpsBitflag = 1 << 9;
 pub const NEG:          OpsBitflag = 1 << 10;
+
+
 
 pub const ADD_OPS:      OpsBitflag = ADD | ADD_ASSIGN;
 pub const SUB_OPS:      OpsBitflag = SUB | SUB_ASSIGN;
@@ -84,4 +110,5 @@ pub mod iter_ops {
 
     pub const ARITH_ITER_OPS:   OpsBitflag = ARITH_OPS | ITER_OPS;
 }
-#[cfg(feature = "")]
+#[cfg(all(feature = "bit_ops", feature = "iter_ops"))]
+pub const ARITH_BIT_ITER_OPS: ARITH_OPS | BIT_OPS | ITER_OPS;
