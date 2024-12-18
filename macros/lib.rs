@@ -16,37 +16,6 @@ pub struct MyTraitOpts {
     lorem: Lorem,
 }
 
-#[derive(Default, FromMeta)]
-#[darling(default)]
-pub struct OpsSelf {
-    ops: OpsBitflag,
-    suffix:
-}
-
-#[derive(Default, FromMeta)]
-#[darling(default)]
-pub struct OpsWith {
-    ops: OpsBitflag,
-    targets: &[Ident],
-    into:
-    from:
-}
-
-#[derive(FromDeriveInput)]
-#[darling(
-    attributes(auto_ops),
-    supports(struct_any),
-    forward_attrs(OPSow, doc, cfg)
-)]
-pub struct AutoOps {
-    ident: syn::Ident,
-    attrs: Vec<syn::Attribute>,
-    ops_self: OpsSelf,
-    ops_with: OpsWith,
-    partial_ord:
-    eq:
-}
-
 pub type OpsBitflag = u32;
 pub const ADD:          OpsBitflag = 1 << 0;
 pub const ADD_ASSIGN:   OpsBitflag = 1 << 1;
@@ -113,21 +82,88 @@ pub mod iter_ops {
 #[cfg(all(feature = "bit_ops", feature = "iter_ops"))]
 pub const ARITH_BIT_ITER_OPS: ARITH_OPS | BIT_OPS | ITER_OPS;
 
-#[derive(AutoOps)]
+
+
+
+
+#[derive(Default, FromMeta)]
+#[darling(default)]
+pub struct ConvertReciever {
+    target: Target,
+    from: TokenStream,
+    into: TokenStream,
+}
+
+#[derive(Default, FromMeta)]
+
+#[derive(Default, FromMeta)]
+#[darling(default)]
+pub struct OpsSelf {
+    ops: OpsBitflag,
+    #[darling(map = )]
+    suffix:
+    suffix_assign:
+}
+
+#[derive(Default, FromMeta)]
+#[darling(default)]
+pub struct OpsWith {
+    ops: OpsBitflag,
+    targets: &[Ident],
+    into:
+    from:
+}
+
+#[derive(FromDeriveInput)]
+#[darling(
+    attributes(auto_ops),
+    supports(struct_any),
+    // forward_attrs(doc, cfg)
+)]
+pub struct AutoOps {
+    ident: syn::Ident,
+    attrs: Vec<syn::Attribute>,
+    convert: ConvertImpl,
+    partial_eq: PartialEqImpl,
+    partial_ord: PartialOrdImpl,
+    ops_self: OpsSelf,
+    ops_with: OpsWith,
+}
+
+#[derive(AutoOps, PartialEq, Eq, PartialOrd, Ord)]
 #[auto_ops(
-    ops_self(ops=ALL_OPS, suffix=deg_suffix),
+    convert(
+        target=
+        into=
+        from=
+    ),
+    // partial_eq
+    // partial_ord
+    ops_self(
+        ops=ALL_OPS,
+        suffix=deg_suffix
+        
+    ),
     ops_with(
         ops=ALL_OPS,
         targets=ALL,
-        into:
-        from:
+        suffix=
     ),
-    partial_ord()
-    eq()
 )]
 pub struct Deg(isize);
 
-fn deg_suffix(fields: &[Ident]) -> {
-    let res = fields[0].into() % 360;
-    if res > 0 { res } else { res + 360 }
+fn deg_suffix(fields: &[Ident]) -> proc_macro2::TokenStream {
+    quote! {
+        let res = self.#fields % 360;
+        if self.#field >= 0 { res } else { res + 360 }
+    }
+}
+
+fn deg_suffix_assign(fields: &[Ident]) -> proc_macro2::TokenStream {
+    quote! {
+        #(
+            self.#fields %= 360;
+            if self.#fields < 0 { self.#fields += 360 }
+        )
+    }
 }
