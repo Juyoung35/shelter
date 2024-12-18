@@ -112,3 +112,22 @@ pub mod iter_ops {
 }
 #[cfg(all(feature = "bit_ops", feature = "iter_ops"))]
 pub const ARITH_BIT_ITER_OPS: ARITH_OPS | BIT_OPS | ITER_OPS;
+
+#[derive(AutoOps)]
+#[auto_ops(
+    ops_self(ops=ALL_OPS, suffix=deg_suffix),
+    ops_with(
+        ops=ALL_OPS,
+        targets=ALL,
+        into:
+        from:
+    ),
+    partial_ord()
+    eq()
+)]
+pub struct Deg(isize);
+
+fn deg_suffix(fields: &[Ident]) -> {
+    let res = fields[0].into() % 360;
+    if res > 0 { res } else { res + 360 }
+}
